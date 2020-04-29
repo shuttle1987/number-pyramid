@@ -1,5 +1,5 @@
 def calculate_value(row):
-    """Calculate the top value of the pyramid for a given row"""
+    """Calculate the top value of the summation pyramid for a given row"""
     if len(row) == 1:
         # at the top of the pyramid
         return row[0]
@@ -16,6 +16,15 @@ assert calculate_value([1,2,5,6,7,11]) == 167
 results = {}
 
 def bins_to_value(bins):
+    """Convert from the bins representation to the bottom row of the pyramid and then calculate
+    the apex sum value of that
+    
+    For example if we had bins: (1,2), (3,4), (8,9)
+    this would be the pyramid with base row:
+
+    1 3 8 9 4 2
+    
+    """
     low = []
     high = []
     mid = []
@@ -35,6 +44,7 @@ class CantSwap(Exception):
 
 
 def swap_nested_tuple(data, indexes1, indexes2):
+    """Since tuples are immutable we have to do some work to swap values"""
     new_data = list(list(bin) for bin in data)
     new_data[indexes1[0]][indexes1[1]], new_data[indexes2[0]][indexes2[1]] = new_data[indexes2[0]][indexes2[1]], new_data[indexes1[0]][indexes1[1]]
     return tuple(tuple(sorted(bin)) for bin in new_data)
@@ -54,15 +64,15 @@ def swap_to_smaller(candidate_numbers):
                 sol = swap_nested_tuple(candidate_numbers, (i,0), (j,0))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[1] < larger_bin[0]:
+            if smaller_bin[1] < larger_bin[0] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,1), (j,0))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[0] < larger_bin[1]:
+            if smaller_bin[0] < larger_bin[1] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,0), (j,1))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[1] < larger_bin[1]:
+            if smaller_bin[1] < larger_bin[1] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,1), (j,1))
                 print("*****",sol)
                 if sol not in results:
@@ -84,15 +94,15 @@ def swap_to_larger(candidate_numbers):
                 sol = swap_nested_tuple(candidate_numbers, (i,0), (j,0))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[1] > larger_bin[0]:
+            elif smaller_bin[1] > larger_bin[0] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,1), (j,0))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[0] > larger_bin[1]:
+            elif smaller_bin[0] > larger_bin[1] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,0), (j,1))
                 if sol not in results:
                     swap_found = True
-            elif smaller_bin[1] > larger_bin[1]:
+            elif smaller_bin[1] > larger_bin[1] and not swap_found:
                 sol = swap_nested_tuple(candidate_numbers, (i,1), (j,1))
                 if sol not in results:
                     swap_found = True
@@ -102,6 +112,26 @@ def swap_to_larger(candidate_numbers):
     raise CantSwap(f"Couldn't swap to make larger: {str(candidate_numbers)}")
 
 def solve(candidate_numbers, target_sum: int):
+    """Try to solve for the candidate sum by arranging the candidate numbers.
+
+    Input has to be in the bins format, where symmetry of the problem is being exploited.
+    Each bin contains the equidistant elements from the outside of the triangle.
+    For example the pyramid with base row:
+
+    a b c
+
+    Corresponds to the bins representation:
+
+    (a,b), (c)
+
+    and the pyramid with base row:
+
+    a b c d
+
+    Would correspond to the bins representation:
+
+    (a, b), (c, d)
+    """
     current_candidate = tuple(tuple(sorted(bin)) for bin in candidate_numbers)
     while True:
         print("currently trying", current_candidate)
@@ -116,4 +146,9 @@ def solve(candidate_numbers, target_sum: int):
         else:
             current_candidate = swap_to_larger(candidate_numbers)
 
-solve(candidate_numbers=((1,5),(2,7),(11,6)), target_sum=167)
+numbers = ((1,5),(2,7),(11,6))
+target_number=167
+try:
+    solve(candidate_numbers=numbers, target_sum=target_number)
+except CantSwap:
+    print(f"Couldn't find a solution for numbers: {numbers} to reach target pyramid sum value of {target_number}")
